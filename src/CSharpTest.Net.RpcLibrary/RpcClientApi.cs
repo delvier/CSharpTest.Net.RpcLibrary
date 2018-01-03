@@ -1,23 +1,10 @@
-﻿#region Copyright 2010-2014 by Roger Knapp, Licensed under the Apache License, Version 2.0
-/* Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- * 
- *   http://www.apache.org/licenses/LICENSE-2.0
- * 
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-#endregion
-using System;
+﻿using System;
 using System.Net;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using CSharpTest.Net.RpcLibrary.Interop;
 using CSharpTest.Net.RpcLibrary.Interop.Structs;
+#pragma warning disable 1591
 
 namespace CSharpTest.Net.RpcLibrary
 {
@@ -28,15 +15,36 @@ namespace CSharpTest.Net.RpcLibrary
     public class RpcClientApi : IDisposable
     {
         /// <summary> The interface Id the client is connected to </summary>
-        public readonly Guid IID;
-        private readonly RpcProtseq _protocol;
-        private readonly string _binding;
-        private readonly RpcHandle _handle;
+        public Guid IID;
+        private RpcProtseq _protocol;
+        private string _binding;
+        private RpcHandle _handle;
         private bool _authenticated;
+
+        /// <summary>
+        /// Provide raw RpcHandle _handle
+        ///  /* [in] */ handle_t hBinding,
+        /// </summary>
+        public RpcHandle Handle => _handle;
+
+        /// <summary>
+        /// Prepare RpcHandle and BindingString for manually perform Connection to server.
+        /// </summary>
+        public RpcClientApi(Guid iid, RpcProtseq protocol, string server, string endpoint, bool noConnect = false)
+        {
+            PrepareRpcHandleAndBindingString(iid, protocol, server, endpoint);
+        }
+
         /// <summary>
         /// Connects to the provided server interface with the given protocol and server:endpoint
         /// </summary>
         public RpcClientApi(Guid iid, RpcProtseq protocol, string server, string endpoint)
+        {
+            PrepareRpcHandleAndBindingString(iid, protocol, server, endpoint);
+            Connect();
+        }
+
+        private void PrepareRpcHandleAndBindingString(Guid iid, RpcProtseq protocol, string server, string endpoint)
         {
             _handle = new RpcClientHandle();
             IID = iid;
@@ -44,8 +52,8 @@ namespace CSharpTest.Net.RpcLibrary
             Log.Verbose("RpcClient('{0}:{1}')", server, endpoint);
 
             _binding = StringBindingCompose(protocol, server, endpoint, null);
-            Connect();
         }
+
         /// <summary>
         /// Disconnects the client and frees any resources.
         /// </summary>
@@ -79,7 +87,7 @@ namespace CSharpTest.Net.RpcLibrary
         /// Connects the client; however, this is a soft-connection and validation of 
         /// the connection will not take place until the first call is attempted.
         /// </summary>
-        private void Connect()
+        protected void Connect()
         {
             BindingFromStringBinding(_handle, _binding);
             Log.Verbose("RpcClient.Connect({0} = {1})", _handle.Handle, _binding);
@@ -202,7 +210,7 @@ namespace CSharpTest.Net.RpcLibrary
             CharSet = CharSet.Unicode, SetLastError = true)]
         private static extern RpcError RpcBindingFromStringBinding(String bindingString, out IntPtr lpBinding);
 
-        private static void BindingFromStringBinding(RpcHandle handle, String bindingString)
+        public static void BindingFromStringBinding(RpcHandle handle, String bindingString)
         {
             RpcError result = RpcBindingFromStringBinding(bindingString, out handle.Handle);
             RpcException.Assert(result);
