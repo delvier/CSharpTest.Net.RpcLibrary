@@ -28,37 +28,41 @@ namespace CSharpTest.Net.RpcLibrary.Test
         [Test]
         public void TestClientOnLocalRpc()
         {
-            Guid iid = Guid.NewGuid();
+            Guid iid = new Guid(0x906B0CE0, 0xC70B,0x1067, 0xB3, 0x17,0x00,0xDD,0x01,0x06,0x62,0xDA); // Iastorafsservice endpoint guid.
             using (RpcServerApi server = new RpcServerApi(iid))
             {
-                server.AddProtocol(RpcProtseq.ncalrpc, "lrpctest", 5);
-                server.AddAuthentication(RpcAuthentication.RPC_C_AUTHN_WINNT);
+                server.AddProtocol(RpcProtseq.ncalrpc, "IastorAfsServiceRpcEndpoint", 5);
+                server.AddAuthentication(RpcAuthentication.RPC_C_AUTHN_DEFAULT);
                 server.StartListening();
-                server.OnExecute +=
-                    delegate(IRpcClientInfo client, byte[] arg)
-                        {
-                            Assert.AreEqual(0, arg.Length);
-                            Assert.AreEqual(RpcAuthentication.RPC_C_AUTHN_WINNT, client.AuthenticationLevel);
-                            Assert.AreEqual(RpcProtectionLevel.RPC_C_PROTECT_LEVEL_PKT_PRIVACY, client.ProtectionLevel);
-                            Assert.AreEqual(RpcProtoseqType.LRPC, client.ProtocolType);
-                            Assert.AreEqual(new byte[0], client.ClientAddress);
-                            Assert.AreEqual(System.Diagnostics.Process.GetCurrentProcess().Id, client.ClientPid.ToInt32());
-                            Assert.AreEqual(System.Security.Principal.WindowsIdentity.GetCurrent().Name, client.ClientPrincipalName);
-                            Assert.AreEqual(System.Security.Principal.WindowsIdentity.GetCurrent().Name, client.ClientUser.Name);
-                            Assert.AreEqual(true, client.IsClientLocal);
-                            Assert.AreEqual(true, client.IsAuthenticated);
-                            Assert.AreEqual(false, client.IsImpersonating);
-                            using(client.Impersonate())
-                                Assert.AreEqual(true, client.IsImpersonating);
-                            Assert.AreEqual(false, client.IsImpersonating);
-                            return arg;
-                        };
-
-                using (RpcClientApi client = new RpcClientApi(iid, RpcProtseq.ncalrpc, null, "lrpctest"))
+                while (true)
                 {
-                    client.AuthenticateAs(RpcClientApi.Self);
-                    client.Execute(new byte[0]);
+                    // force running
                 }
+                //server.OnExecute +=
+                //    delegate(IRpcClientInfo client, byte[] arg)
+                //        {
+                //            Assert.AreEqual(0, arg.Length);
+                //            Assert.AreEqual(RpcAuthentication.RPC_C_AUTHN_WINNT, client.AuthenticationLevel);
+                //            Assert.AreEqual(RpcProtectionLevel.RPC_C_PROTECT_LEVEL_PKT_PRIVACY, client.ProtectionLevel);
+                //            Assert.AreEqual(RpcProtoseqType.LRPC, client.ProtocolType);
+                //            Assert.AreEqual(new byte[0], client.ClientAddress);
+                //            Assert.AreEqual(System.Diagnostics.Process.GetCurrentProcess().Id, client.ClientPid.ToInt32());
+                //            Assert.AreEqual(System.Security.Principal.WindowsIdentity.GetCurrent().Name, client.ClientPrincipalName);
+                //            Assert.AreEqual(System.Security.Principal.WindowsIdentity.GetCurrent().Name, client.ClientUser.Name);
+                //            Assert.AreEqual(true, client.IsClientLocal);
+                //            Assert.AreEqual(true, client.IsAuthenticated);
+                //            Assert.AreEqual(false, client.IsImpersonating);
+                //            using(client.Impersonate())
+                //                Assert.AreEqual(true, client.IsImpersonating);
+                //            Assert.AreEqual(false, client.IsImpersonating);
+                //            return arg;
+                //        };
+
+                //using (RpcClientApi client = new RpcClientApi(iid, RpcProtseq.ncalrpc, null, "IastorAfsServiceRpcEndpoint"))
+                //{
+                //    //client.AuthenticateAs(RpcClientApi.Anonymous);
+                //    client.Execute(new byte[0]);
+                //}
             }
         }
 

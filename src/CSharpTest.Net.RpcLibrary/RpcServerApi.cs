@@ -128,37 +128,39 @@ namespace CSharpTest.Net.RpcLibrary
             _listenerCount.Decrement(ServerStopListening);
         }
 
-        private uint RpcEntryPoint(IntPtr clientHandle, uint szInput, IntPtr input, out uint szOutput, out IntPtr output)
+        //private uint RpcEntryPoint(IntPtr clientHandle, uint szInput, IntPtr input, out uint szOutput, out IntPtr output)
+        private uint RpcEntryPoint(IntPtr clientHandle, [Out] out IntPtr sessionContext)
         {
-            output = IntPtr.Zero;
-            szOutput = 0;
-
+            //output = IntPtr.Zero;
+            //szOutput = 0;
+            sessionContext = RpcApi.Alloc((uint) IntPtr.Size);
             try
             {
-                byte[] bytesIn = new byte[szInput];
-                Marshal.Copy(input, bytesIn, 0, bytesIn.Length);
+               // byte[] bytesIn = new byte[szInput];
+               // Marshal.Copy(input, bytesIn, 0, bytesIn.Length);
 
-                byte[] bytesOut;
+                byte[] bytesOut = new byte[3];
                 using (RpcClientInfo client = new RpcClientInfo(clientHandle))
                 {
-                    bytesOut = Execute(client, bytesIn);
+                    var myClient = client;
+                    //bytesOut = Execute(client, bytesIn);
                 }
-                if (bytesOut == null)
-                {
-                    return (uint) RpcError.RPC_S_NOT_LISTENING;
-                }
+                //if (bytesOut == null)
+                //{
+                //    return (uint) RpcError.RPC_S_NOT_LISTENING;
+                //}
 
-                szOutput = (uint) bytesOut.Length;
-                output = RpcApi.Alloc(szOutput);
-                Marshal.Copy(bytesOut, 0, output, bytesOut.Length);
+                //szOutput = (uint) bytesOut.Length;
+                //output = RpcApi.Alloc(szOutput);
+                //Marshal.Copy(bytesOut, 0, output, bytesOut.Length);
 
                 return (uint) RpcError.RPC_S_OK;
             }
             catch (Exception ex)
             {
-                RpcApi.Free(output);
-                output = IntPtr.Zero;
-                szOutput = 0;
+                //RpcApi.Free(output);
+                //output = IntPtr.Zero;
+                //szOutput = 0;
 
                 Log.Error(ex);
                 return (uint) RpcError.RPC_E_FAIL;
@@ -232,11 +234,14 @@ namespace CSharpTest.Net.RpcLibrary
 
         #region RpcServerXXXX routines
 
-        [DllImport("Rpcrt4.dll", EntryPoint = "RpcServerUseProtseqEpW", CallingConvention = CallingConvention.StdCall,
+        [DllImport("Rpcrt4.dll", CallingConvention = CallingConvention.StdCall,
             CharSet = CharSet.Unicode, SetLastError = true)]
-        private static extern RpcError RpcServerUseProtseqEp(String Protseq, int MaxCalls, String Endpoint, IntPtr SecurityDescriptor);
+        private static extern RpcError RpcServerUseProtseqEp(string Protseq, 
+            int MaxCalls, 
+            [MarshalAs(UnmanagedType.LPWStr)] string Endpoint, 
+            IntPtr SecurityDescriptor);
 
-        private static bool ServerUseProtseqEp(RpcProtseq protocol, int maxCalls, String endpoint)
+        private static bool ServerUseProtseqEp(RpcProtseq protocol, int maxCalls, string endpoint)
         {
             Log.Verbose("ServerUseProtseqEp({0})", protocol);
             RpcError err = RpcServerUseProtseqEp(protocol.ToString(), maxCalls, endpoint, IntPtr.Zero);

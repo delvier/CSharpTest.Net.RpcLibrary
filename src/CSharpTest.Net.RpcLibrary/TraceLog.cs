@@ -38,7 +38,7 @@ namespace CSharpTest.Net.RpcLibrary
             {
                 try
                 {
-                    Verbose(String.Format(message, arguments));
+                    Debug.WriteLine(String.Format(message, arguments));
                 }
                 catch
                 {
@@ -58,7 +58,7 @@ namespace CSharpTest.Net.RpcLibrary
         {
             try
             {
-                Warning(String.Format(message, arguments));
+                Debug.WriteLine(String.Format(message, arguments));
             }
             catch
             {
@@ -77,7 +77,7 @@ namespace CSharpTest.Net.RpcLibrary
         {
             try
             {
-                Error(String.Format(message, arguments));
+                Debug.WriteLine(String.Format(message, arguments));
             }
             catch
             {

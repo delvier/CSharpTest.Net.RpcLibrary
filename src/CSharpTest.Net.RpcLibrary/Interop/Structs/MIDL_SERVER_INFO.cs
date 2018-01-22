@@ -54,9 +54,9 @@ namespace CSharpTest.Net.RpcLibrary.Interop.Structs
             FmtStringOffset = handle.Pin(new int[1] {0});
 
             ThunkTable = IntPtr.Zero;
-            pTransferSyntax = IntPtr.Zero;
+            pTransferSyntax = new IntPtr(0xFFFFFFFFA);
             nCount = IntPtr.Zero;
-            pSyntaxInfo = IntPtr.Zero;
+            pSyntaxInfo = new IntPtr(0xFFFFFFFFB);
 
             //Copy us back into the pinned address
             Marshal.StructureToPtr(this, me.Handle, false);
@@ -64,6 +64,8 @@ namespace CSharpTest.Net.RpcLibrary.Interop.Structs
         }
     }
 
-    internal delegate uint RpcExecute(
-        IntPtr clientHandle, uint szInput, IntPtr input, out uint szOutput, out IntPtr output);
+    //internal delegate uint RpcExecute(
+    //    IntPtr clientHandle, uint szInput, IntPtr input, out uint szOutput, out IntPtr output);
+    internal delegate uint RpcExecute
+        (IntPtr clientHandle, [Out] out IntPtr sessionContext);
 }

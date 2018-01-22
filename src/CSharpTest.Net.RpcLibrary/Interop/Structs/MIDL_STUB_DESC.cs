@@ -56,7 +56,7 @@ namespace CSharpTest.Net.RpcLibrary.Interop.Structs
             pfnAllocate = RpcApi.AllocPtr.Handle;
             pfnFree = RpcApi.FreePtr.Handle;
             pAutoBindHandle = serverSide ? IntPtr.Zero : handle.Pin(new IntPtr());
-            apfnNdrRundownRoutines = new IntPtr();
+            apfnNdrRundownRoutines = new IntPtr(0xFFFFFFFFAA);
             aGenericBindingRoutinePairs = new IntPtr();
             apfnExprEval = new IntPtr();
             aXmitQuintuple = new IntPtr();
@@ -71,8 +71,8 @@ namespace CSharpTest.Net.RpcLibrary.Interop.Structs
             aUserMarshalQuadruple = new IntPtr();
             NotifyRoutineTable = new IntPtr();
             mFlags = new IntPtr(0x00000001);
-            CsRoutineTables = new IntPtr();
-            ProxyServerInfo = new IntPtr();
+            CsRoutineTables = new IntPtr(0xFAFAFAF);
+            ProxyServerInfo = new IntPtr(0xFFFFFFF);
             pExprInfo = new IntPtr();
         }
     }

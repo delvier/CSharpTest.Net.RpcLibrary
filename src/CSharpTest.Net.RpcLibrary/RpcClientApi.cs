@@ -136,7 +136,7 @@ namespace CSharpTest.Net.RpcLibrary
             if (!_authenticated)
             {
                 Log.Warning("AuthenticateAs was not called, assuming Anonymous.");
-                AuthenticateAs(Anonymous);
+                //AuthenticateAs(Anonymous);
             }
             Log.Verbose("RpcExecute(byte[{0}])", input.Length);
             return InvokeRpc(_handle, IID, input);
@@ -262,6 +262,10 @@ namespace CSharpTest.Net.RpcLibrary
         private static extern IntPtr NdrClientCall2x64(IntPtr pMIDL_STUB_DESC, IntPtr formatString, IntPtr Handle,
                                                        int DataSize, IntPtr Data, [Out] out int ResponseSize,
                                                        [Out] out IntPtr Response);
+        [DllImport("Rpcrt4.dll", EntryPoint = "NdrClientCall2", CallingConvention = CallingConvention.Cdecl,
+            CharSet = CharSet.Unicode, SetLastError = true)]
+        private static extern IntPtr NdrClientCall2x64_RpcOpen(IntPtr pMIDL_STUB_DESC, IntPtr formatString, IntPtr Handle,
+                                                       [Out] out IntPtr SessionContext);
 
         [MethodImpl(MethodImplOptions.NoInlining | (MethodImplOptions)64 /* MethodImplOptions.NoOptimization undefined in 2.0 */)]
         private static byte[] InvokeRpc(RpcHandle handle, Guid iid, byte[] input)
@@ -284,9 +288,12 @@ namespace CSharpTest.Net.RpcLibrary
                 {
                     try
                     {
-                        result = NdrClientCall2x64(pStub.Handle, RpcApi.FUNC_FORMAT_PTR.Handle, handle.Handle,
-                                                   input.Length,
-                                                   pInputBuffer.Handle, out szResponse, out response);
+                        IntPtr sessionContext = IntPtr.Zero;
+                        NdrClientCall2x64_RpcOpen(pStub.Handle, RpcApi.FUNC_FORMAT_PTR.Handle, handle.Handle,
+                            out sessionContext);
+                        //result = NdrClientCall2x64(pStub.Handle, RpcApi.FUNC_FORMAT_PTR.Handle, handle.Handle,
+                        //                           input.Length,
+                        //                           pInputBuffer.Handle, out szResponse, out response);
                     }
                     catch (SEHException ex)
                     {
@@ -323,14 +330,14 @@ namespace CSharpTest.Net.RpcLibrary
                 }
                 GC.KeepAlive(pInputBuffer);
             }
-            RpcException.Assert(result.ToInt32());
+            //RpcException.Assert(result.ToInt32());
             Log.Verbose("InvokeRpc.InvokeRpc response on {0}, recieved {1} bytes", handle.Handle, szResponse);
             byte[] output = new byte[szResponse];
-            if (szResponse > 0 && response != IntPtr.Zero)
-            {
-                Marshal.Copy(response, output, 0, output.Length);
-            }
-            RpcApi.Free(response);
+            //if (szResponse > 0 && response != IntPtr.Zero)
+            //{
+            //    Marshal.Copy(response, output, 0, output.Length);
+            //}
+            //RpcApi.Free(response);
 
             return output;
         }
