@@ -29,6 +29,8 @@ namespace CSharpTest.Net.RpcLibrary.Interop.Structs
     internal struct RPC_DISPATCH_TABLE_Entry
     {
         public IntPtr DispatchMethod;
+        public IntPtr DispatchMethod2;
+        public IntPtr DispatchMethod3;
         public IntPtr Zero;
     }
 }

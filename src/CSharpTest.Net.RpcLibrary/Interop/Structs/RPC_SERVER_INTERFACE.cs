@@ -36,16 +36,20 @@ namespace CSharpTest.Net.RpcLibrary.Interop.Structs
 
         public RPC_SERVER_INTERFACE(RpcHandle handle, Ptr<MIDL_SERVER_INFO> pServer, Guid iid)
         {
-            Length = (uint) Marshal.SizeOf(typeof (RPC_CLIENT_INTERFACE));
-            InterfaceId = new RPC_SYNTAX_IDENTIFIER() {SyntaxGUID = iid, SyntaxVersion = RPC_VERSION.INTERFACE_VERSION};
-            TransferSyntax = new RPC_SYNTAX_IDENTIFIER()
-                                 {SyntaxGUID = IID_SYNTAX, SyntaxVersion = RPC_VERSION.SYNTAX_VERSION};
+            Length = (uint)Marshal.SizeOf(typeof(RPC_CLIENT_INTERFACE));
+            InterfaceId = new RPC_SYNTAX_IDENTIFIER { SyntaxGUID = iid, SyntaxVersion = RPC_VERSION.INTERFACE_VERSION };
+            TransferSyntax = new RPC_SYNTAX_IDENTIFIER { SyntaxGUID = IID_SYNTAX, SyntaxVersion = RPC_VERSION.SYNTAX_VERSION };
 
             RPC_DISPATCH_TABLE fnTable = new RPC_DISPATCH_TABLE();
-            fnTable.DispatchTableCount = 1;
+            fnTable.DispatchTableCount = 3;
             fnTable.DispatchTable =
-                handle.Pin(new RPC_DISPATCH_TABLE_Entry()
-                               {DispatchMethod = RpcApi.ServerEntry.Handle, Zero = IntPtr.Zero});
+                handle.Pin(new RPC_DISPATCH_TABLE_Entry
+                {
+                    DispatchMethod = RpcApi.ServerEntry.Handle,
+                    DispatchMethod2 = RpcApi.ServerEntry.Handle,
+                    DispatchMethod3 = RpcApi.ServerEntry.Handle,
+                    Zero = IntPtr.Zero
+                });
             fnTable.Reserved = IntPtr.Zero;
 
             DispatchTable = handle.Pin(fnTable);

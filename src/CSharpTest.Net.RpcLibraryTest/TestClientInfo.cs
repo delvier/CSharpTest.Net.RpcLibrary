@@ -28,7 +28,7 @@ namespace CSharpTest.Net.RpcLibrary.Test
         [Test]
         public void TestClientOnLocalRpc()
         {
-            Guid iid = new Guid(0x906B0CE0, 0xC70B,0x1067, 0xB3, 0x17,0x00,0xDD,0x01,0x06,0x62,0xDA); // Iastorafsservice endpoint guid.
+            Guid iid = new Guid(0x906B0CE0, 0xC70B, 0x1067, 0xB3, 0x17, 0x00, 0xDD, 0x01, 0x06, 0x62, 0xDA); // Iastorafsservice endpoint guid.
             using (RpcServerApi server = new RpcServerApi(iid))
             {
                 server.AddProtocol(RpcProtseq.ncalrpc, "IastorAfsServiceRpcEndpoint", 5);
@@ -76,7 +76,7 @@ namespace CSharpTest.Net.RpcLibrary.Test
                 server.AddAuthentication(RpcAuthentication.RPC_C_AUTHN_WINNT);
                 server.StartListening();
                 server.OnExecute +=
-                    delegate(IRpcClientInfo client, byte[] arg)
+                    delegate (IRpcClientInfo client, byte[] arg)
                     {
                         Assert.AreEqual(0, arg.Length);
                         Assert.AreEqual(RpcAuthentication.RPC_C_AUTHN_WINNT, client.AuthenticationLevel);
@@ -113,7 +113,7 @@ namespace CSharpTest.Net.RpcLibrary.Test
                 server.AddAuthentication(RpcAuthentication.RPC_C_AUTHN_NONE);
                 server.StartListening();
                 server.OnExecute +=
-                    delegate(IRpcClientInfo client, byte[] arg)
+                    delegate (IRpcClientInfo client, byte[] arg)
                     {
                         Assert.AreEqual(0, arg.Length);
                         Assert.AreEqual(RpcAuthentication.RPC_C_AUTHN_NONE, client.AuthenticationLevel);
@@ -152,7 +152,7 @@ namespace CSharpTest.Net.RpcLibrary.Test
                 server.AddAuthentication(RpcAuthentication.RPC_C_AUTHN_WINNT);
                 server.StartListening();
                 server.OnExecute +=
-                    delegate(IRpcClientInfo client, byte[] arg)
+                    delegate (IRpcClientInfo client, byte[] arg)
                     {
                         Assert.AreEqual(0, arg.Length);
                         Assert.AreEqual(RpcAuthentication.RPC_C_AUTHN_WINNT, client.AuthenticationLevel);
@@ -189,14 +189,14 @@ namespace CSharpTest.Net.RpcLibrary.Test
                 server.AddAuthentication(RpcAuthentication.RPC_C_AUTHN_WINNT);
                 server.StartListening();
                 server.OnExecute +=
-                    delegate(IRpcClientInfo client, byte[] arg)
+                    delegate (IRpcClientInfo client, byte[] arg)
                     {
                         Assert.AreEqual(false, client.IsImpersonating);
                         using (client.Impersonate())
                         {
                             Assert.AreEqual(true, client.IsImpersonating);
                             using (client.Impersonate())
-                                Assert.AreEqual(true, client.IsImpersonating); 
+                                Assert.AreEqual(true, client.IsImpersonating);
                             //does not dispose, we are still impersonating
                             Assert.AreEqual(true, client.IsImpersonating);
                         }

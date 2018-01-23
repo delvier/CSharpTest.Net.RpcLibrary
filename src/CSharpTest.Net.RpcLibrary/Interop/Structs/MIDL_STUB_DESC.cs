@@ -14,6 +14,7 @@
 #endregion
 using System;
 using System.Runtime.InteropServices;
+#pragma warning disable 1591
 
 namespace CSharpTest.Net.RpcLibrary.Interop.Structs
 {
@@ -21,8 +22,10 @@ namespace CSharpTest.Net.RpcLibrary.Interop.Structs
 
     internal delegate void LocalFree(IntPtr ptr);
 
+
     [StructLayout(LayoutKind.Sequential)]
     internal struct MIDL_STUB_DESC
+
     {
         public IntPtr /*RPC_CLIENT_INTERFACE*/ RpcInterfaceInformation;
         public IntPtr pfnAllocate;
@@ -56,7 +59,7 @@ namespace CSharpTest.Net.RpcLibrary.Interop.Structs
             pfnAllocate = RpcApi.AllocPtr.Handle;
             pfnFree = RpcApi.FreePtr.Handle;
             pAutoBindHandle = serverSide ? IntPtr.Zero : handle.Pin(new IntPtr());
-            apfnNdrRundownRoutines = new IntPtr(0xFFFFFFFFAA);
+            apfnNdrRundownRoutines = serverSide ? handle.Pin(new NDR_RUNDOWN_TABLE { RundownEntry  = RemoteCloseFunctionPtr.Handle }) : IntPtr.Zero;
             aGenericBindingRoutinePairs = new IntPtr();
             apfnExprEval = new IntPtr();
             aXmitQuintuple = new IntPtr();
@@ -72,8 +75,22 @@ namespace CSharpTest.Net.RpcLibrary.Interop.Structs
             NotifyRoutineTable = new IntPtr();
             mFlags = new IntPtr(0x00000001);
             CsRoutineTables = new IntPtr(0xFAFAFAF);
-            ProxyServerInfo = new IntPtr(0xFFFFFFF);
+            ProxyServerInfo = new IntPtr(0xAAAAAAAAAA);
             pExprInfo = new IntPtr();
         }
+
+        public static void RemoteClose([Out] out IntPtr ptr)
+        {
+            ptr = IntPtr.Zero;
+        }
+
+        public delegate void RemoteCloseDelegate(out IntPtr ptr);
+        public static FunctionPtr<RemoteCloseDelegate> RemoteCloseFunctionPtr = new FunctionPtr<RemoteCloseDelegate>(RemoteClose);
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    internal struct NDR_RUNDOWN_TABLE
+    {
+        public IntPtr RundownEntry;
     }
 }

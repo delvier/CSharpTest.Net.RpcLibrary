@@ -47,11 +47,17 @@ namespace CSharpTest.Net.RpcLibrary.Interop.Structs
             Ptr<MIDL_STUB_DESC> stub = handle.CreatePtr(new MIDL_STUB_DESC(handle, svrIface.Handle, formatTypes, true));
             pStubDesc = stub.Handle;
 
-            IntPtr ptrFunction = handle.PinFunction(fnExecute);
-            DispatchTable = handle.Pin(ptrFunction);
+            var serverRoutine = new SERVER_ROUTINE()
+            {
+                RemoteOpen = handle.PinFunction(fnExecute),
+                RemoteClose = MIDL_STUB_DESC.RemoteCloseFunctionPtr.Handle,
+                RemoteProcessMessage = new IntPtr(0xEEEEEEEEE2)
+            };
+            //IntPtr ptrFunction = handle.PinFunction(fnExecute);
+            DispatchTable = handle.Pin(serverRoutine);
 
             ProcString = handle.Pin(formatProc);
-            FmtStringOffset = handle.Pin(new int[1] {0});
+            FmtStringOffset = handle.Pin(new ushort[] { 0, 36, 74 });
 
             ThunkTable = IntPtr.Zero;
             pTransferSyntax = new IntPtr(0xFFFFFFFFA);
@@ -62,6 +68,13 @@ namespace CSharpTest.Net.RpcLibrary.Interop.Structs
             Marshal.StructureToPtr(this, me.Handle, false);
             return svrIface;
         }
+    }
+
+    internal struct SERVER_ROUTINE
+    {
+        public IntPtr RemoteOpen;
+        public IntPtr RemoteClose;
+        public IntPtr RemoteProcessMessage;
     }
 
     //internal delegate uint RpcExecute(

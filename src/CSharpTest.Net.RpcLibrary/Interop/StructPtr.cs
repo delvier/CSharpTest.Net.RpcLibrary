@@ -15,6 +15,7 @@
 using System;
 using System.Runtime.InteropServices;
 using System.Runtime.Serialization;
+#pragma warning disable 1591
 
 namespace CSharpTest.Net.RpcLibrary.Interop
 {
@@ -43,7 +44,7 @@ namespace CSharpTest.Net.RpcLibrary.Interop
         }
     }
 
-    internal class FunctionPtr<T> : IDisposable
+    public class FunctionPtr<T> : IDisposable
         //whish I could: where T : Delegate
         where T : class, ICloneable, ISerializable
     {

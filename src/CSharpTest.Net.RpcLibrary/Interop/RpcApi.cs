@@ -14,6 +14,7 @@
 #endregion
 using System;
 using System.Runtime.InteropServices;
+using System.Security.Cryptography;
 using CSharpTest.Net.RpcLibrary.Interop.Structs;
 
 namespace CSharpTest.Net.RpcLibrary.Interop
@@ -28,6 +29,7 @@ namespace CSharpTest.Net.RpcLibrary.Interop
         internal static readonly bool Is64BitProcess;
         internal static readonly byte[] TYPE_FORMAT;
         internal static readonly byte[] FUNC_FORMAT;
+        internal static readonly ushort[] OFFSET_STRING;
         internal static readonly Ptr<Byte[]> FUNC_FORMAT_PTR;
 
         static RpcApi()
@@ -54,6 +56,9 @@ namespace CSharpTest.Net.RpcLibrary.Interop
                 //        0x20, 0x00, 0x12, 0x00, 0x70, 0x00, 0x28, 0x00, 0x10, 0x00,
                 //        0x00
                 //    };
+
+                OFFSET_STRING = new ushort[] { };
+
                 TYPE_FORMAT = new byte[]
              {
                     0x00, 0x00, 0x11, 0x04, 0x02, 0x00, 0x30, 0xA0, 0x00,
@@ -193,26 +198,6 @@ namespace CSharpTest.Net.RpcLibrary.Interop
 
 			0x0
                     };
-
-            }
-            else
-            {
-                TYPE_FORMAT = new byte[]
-                    {
-                        0x00, 0x00, 0x1b, 0x00, 0x01, 0x00, 0x28, 0x00, 0x04, 0x00,
-                        0x01, 0x00, 0x01, 0x5b, 0x11, 0x0c, 0x08, 0x5c, 0x11, 0x14,
-                        0x02, 0x00, 0x12, 0x00, 0x02, 0x00, 0x1b, 0x00, 0x01, 0x00,
-                        0x28, 0x54, 0x0c, 0x00, 0x01, 0x00, 0x01, 0x5b, 0x00
-                    };
-                FUNC_FORMAT = new byte[]
-                    {
-                        0x00, 0x68, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x18, 0x00,
-                        0x32, 0x00, 0x00, 0x00, 0x08, 0x00, 0x24, 0x00, 0x47, 0x05,
-                        0x08, 0x07, 0x01, 0x00, 0x01, 0x00, 0x00, 0x00, 0x48, 0x00,
-                        0x04, 0x00, 0x08, 0x00, 0x0b, 0x00, 0x08, 0x00, 0x02, 0x00,
-                        0x50, 0x21, 0x0c, 0x00, 0x08, 0x00, 0x13, 0x20, 0x10, 0x00,
-                        0x12, 0x00, 0x70, 0x00, 0x14, 0x00, 0x10, 0x00, 0x00
-                    };
             }
             FUNC_FORMAT_PTR = new Ptr<byte[]>(FUNC_FORMAT);
         }
@@ -221,8 +206,7 @@ namespace CSharpTest.Net.RpcLibrary.Interop
 
         #region Memory Utils
 
-        [DllImport("Kernel32.dll", EntryPoint = "LocalFree", SetLastError = true,
-            CharSet = CharSet.Unicode, ExactSpelling = true, CallingConvention = CallingConvention.Winapi)]
+        [DllImport("Kernel32.dll", EntryPoint = "LocalFree", SetLastError = true, CharSet = CharSet.Unicode)]
         private static extern IntPtr LocalFree(IntPtr memHandle);
 
         internal static void Free(IntPtr ptr)
@@ -236,8 +220,7 @@ namespace CSharpTest.Net.RpcLibrary.Interop
 
         private const UInt32 LPTR = 0x0040;
 
-        [DllImport("Kernel32.dll", EntryPoint = "LocalAlloc", SetLastError = true,
-            CharSet = CharSet.Unicode, ExactSpelling = true, CallingConvention = CallingConvention.Winapi)]
+        [DllImport("Kernel32.dll", EntryPoint = "LocalAlloc", SetLastError = true, CharSet = CharSet.Unicode, ExactSpelling = true)]
         private static extern IntPtr LocalAlloc(UInt32 flags, UInt32 nBytes);
 
         internal static IntPtr Alloc(uint size)
