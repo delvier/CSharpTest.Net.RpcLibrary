@@ -1,19 +1,6 @@
-﻿#region Copyright 2010-2014 by Roger Knapp, Licensed under the Apache License, Version 2.0
-/* Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- * 
- *   http://www.apache.org/licenses/LICENSE-2.0
- * 
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-#endregion
-using System;
+﻿using System;
 using System.Runtime.InteropServices;
+#pragma warning disable 1591
 
 namespace CSharpTest.Net.RpcLibrary.Interop.Structs
 {
@@ -31,38 +18,37 @@ namespace CSharpTest.Net.RpcLibrary.Interop.Structs
 
         internal static Ptr<RPC_SERVER_INTERFACE> Create(RpcHandle handle, Guid iid, Byte[] formatTypes,
                                                          Byte[] formatProc,
-                                                         RpcExecute fnExecute)
+                                                         RpcRemoteProcessMessageDelegate remoteProcessMessage)
         {
             Ptr<MIDL_SERVER_INFO> pServer = handle.CreatePtr(new MIDL_SERVER_INFO());
 
             MIDL_SERVER_INFO temp = new MIDL_SERVER_INFO();
-            return temp.Configure(handle, pServer, iid, formatTypes, formatProc, fnExecute);
+            return temp.Configure(handle, pServer, iid, formatTypes, formatProc, remoteProcessMessage);
         }
 
         private Ptr<RPC_SERVER_INTERFACE> Configure(RpcHandle handle, Ptr<MIDL_SERVER_INFO> me, Guid iid,
                                                     Byte[] formatTypes,
-                                                    Byte[] formatProc, RpcExecute fnExecute)
+                                                    Byte[] formatProc, RpcRemoteProcessMessageDelegate remoteProcessMessage)
         {
             Ptr<RPC_SERVER_INTERFACE> svrIface = handle.CreatePtr(new RPC_SERVER_INTERFACE(handle, me, iid));
             Ptr<MIDL_STUB_DESC> stub = handle.CreatePtr(new MIDL_STUB_DESC(handle, svrIface.Handle, formatTypes, true));
             pStubDesc = stub.Handle;
 
-            var serverRoutine = new SERVER_ROUTINE()
+            var serverRoutine = new SERVER_ROUTINE
             {
-                RemoteOpen = handle.PinFunction(fnExecute),
+                RemoteOpen = ServerRoutinesHandlers.RemoteOpenFunctionPtr.Handle,
                 RemoteClose = MIDL_STUB_DESC.RemoteCloseFunctionPtr.Handle,
-                RemoteProcessMessage = new IntPtr(0xEEEEEEEEE2)
+                RemoteProcessMessage = handle.PinFunction(remoteProcessMessage)
             };
-            //IntPtr ptrFunction = handle.PinFunction(fnExecute);
             DispatchTable = handle.Pin(serverRoutine);
 
             ProcString = handle.Pin(formatProc);
             FmtStringOffset = handle.Pin(new ushort[] { 0, 36, 74 });
 
             ThunkTable = IntPtr.Zero;
-            pTransferSyntax = new IntPtr(0xFFFFFFFFA);
+            pTransferSyntax = IntPtr.Zero;
             nCount = IntPtr.Zero;
-            pSyntaxInfo = new IntPtr(0xFFFFFFFFB);
+            pSyntaxInfo = IntPtr.Zero;
 
             //Copy us back into the pinned address
             Marshal.StructureToPtr(this, me.Handle, false);
@@ -70,6 +56,7 @@ namespace CSharpTest.Net.RpcLibrary.Interop.Structs
         }
     }
 
+    [StructLayout(LayoutKind.Sequential)]
     internal struct SERVER_ROUTINE
     {
         public IntPtr RemoteOpen;
@@ -77,8 +64,48 @@ namespace CSharpTest.Net.RpcLibrary.Interop.Structs
         public IntPtr RemoteProcessMessage;
     }
 
-    //internal delegate uint RpcExecute(
-    //    IntPtr clientHandle, uint szInput, IntPtr input, out uint szOutput, out IntPtr output);
-    internal delegate uint RpcExecute
-        (IntPtr clientHandle, [Out] out IntPtr sessionContext);
+    internal delegate ulong RpcRemoteProcessMessageDelegate(IntPtr sessioncontext,
+        ulong inputbuffersize, IntPtr inputbufferptr,
+        ulong outputbuffersize, out IntPtr outputbufferptr,
+        out ulong outbufferwritten);
+
+    public class ServerRoutinesHandlers
+    {
+        public delegate ulong RemoteProcessMessageDelegate(IntPtr sessionContext,
+            ulong inputBufferSize, IntPtr inputBufferPtr,
+            ulong outputBufferSize, [Out] out IntPtr outputBufferPtr, out ulong outBufferWritten);
+        public static FunctionPtr<RemoteProcessMessageDelegate> RemoteProcessMessageFunctionPtr =
+            new FunctionPtr<RemoteProcessMessageDelegate>(RemoteProcessMessageMethod);
+
+        public static ulong RemoteProcessMessageMethod(IntPtr sessioncontext,
+            ulong inputbuffersize, IntPtr inputbufferptr,
+            ulong outputbuffersize, out IntPtr outputbufferptr, out ulong outbufferwritten)
+        {
+            var output = RpcApi.Alloc((uint)outputbuffersize);
+            var bytes = new byte[] { 0xFF, 0xAA, 0xBB };
+            Marshal.Copy(bytes, 0, output, bytes.Length);
+
+            outputbufferptr = output;
+            outbufferwritten = (ulong)bytes.Length;
+            return 0;
+        }
+
+        public delegate uint RemoteOpenDelegate(IntPtr clientHandle, [Out] out IntPtr sessionContext);
+        public static FunctionPtr<RemoteOpenDelegate> RemoteOpenFunctionPtr =
+            new FunctionPtr<RemoteOpenDelegate>(RemoteOpenMethod);
+        public static uint RemoteOpenMethod(IntPtr clientHandle, [Out] out IntPtr sessionContext)
+        {
+            sessionContext = IntPtr.Zero;
+            try
+            {
+                sessionContext = RpcApi.Alloc((uint)IntPtr.Size);
+                return (uint)RpcError.RPC_S_OK;
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex);
+                return (uint)RpcError.RPC_E_FAIL;
+            }
+        }
+    }
 }

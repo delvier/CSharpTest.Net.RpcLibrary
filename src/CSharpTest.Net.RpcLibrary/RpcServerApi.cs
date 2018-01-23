@@ -128,42 +128,30 @@ namespace CSharpTest.Net.RpcLibrary
             _listenerCount.Decrement(ServerStopListening);
         }
 
-        //private uint RpcEntryPoint(IntPtr clientHandle, uint szInput, IntPtr input, out uint szOutput, out IntPtr output)
-        private uint RpcEntryPoint(IntPtr clientHandle, [Out] out IntPtr sessionContext)
+        private ulong RpcEntryPoint(IntPtr sessioncontext,
+            ulong inputbuffersize, IntPtr inputbufferptr,
+            ulong outputbuffersize, out IntPtr outputbufferptr, out ulong outbufferwritten)
         {
-            //output = IntPtr.Zero;
-            //szOutput = 0;
-            sessionContext = RpcApi.Alloc((uint) IntPtr.Size);
             try
             {
-               // byte[] bytesIn = new byte[szInput];
-               // Marshal.Copy(input, bytesIn, 0, bytesIn.Length);
+                var output = RpcApi.Alloc((uint)outputbuffersize);
+                var bytes = new byte[] { 0xFF, 0xAA, 0xBB };
+                Marshal.Copy(bytes, 0, output, bytes.Length);
 
-                byte[] bytesOut = new byte[3];
-                using (RpcClientInfo client = new RpcClientInfo(clientHandle))
+                outputbufferptr = output;
+                outbufferwritten = (ulong)bytes.Length;
+
+                using (RpcClientInfo client = new RpcClientInfo(sessioncontext))
                 {
-                    var myClient = client;
-                    //bytesOut = Execute(client, bytesIn);
+                    var outBytes = Execute(client, new byte[3]);
+                    // TODO: Update after first commit! Draft!
                 }
-                //if (bytesOut == null)
-                //{
-                //    return (uint) RpcError.RPC_S_NOT_LISTENING;
-                //}
-
-                //szOutput = (uint) bytesOut.Length;
-                //output = RpcApi.Alloc(szOutput);
-                //Marshal.Copy(bytesOut, 0, output, bytesOut.Length);
-
-                return (uint) RpcError.RPC_S_OK;
+                return 0;
             }
             catch (Exception ex)
             {
-                //RpcApi.Free(output);
-                //output = IntPtr.Zero;
-                //szOutput = 0;
-
                 Log.Error(ex);
-                return (uint) RpcError.RPC_E_FAIL;
+                throw;
             }
         }
         /// <summary>
@@ -264,7 +252,9 @@ namespace CSharpTest.Net.RpcLibrary
         [DllImport("Rpcrt4.dll", EntryPoint = "RpcServerRegisterIf", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Unicode, SetLastError = true)]
         private static extern RpcError RpcServerRegisterIf(IntPtr IfSpec, IntPtr MgrTypeUuid, IntPtr MgrEpv);
 
-        private static void ServerRegisterInterface(RpcHandle handle, Guid iid, RpcExecute fnExec, int maxCalls, int maxRequestBytes, bool allowAnonTcp)
+        private static void ServerRegisterInterface(RpcHandle handle, Guid iid, 
+            RpcRemoteProcessMessageDelegate remoteProcessMessage, 
+            int maxCalls, int maxRequestBytes, bool allowAnonTcp)
         {
             const int RPC_IF_ALLOW_CALLBACKS_WITH_NO_AUTH = 0x0010;
             int flags = 0;
@@ -275,7 +265,7 @@ namespace CSharpTest.Net.RpcLibrary
                 fnAuth = hAuthCall.Handle;
             }
 
-            Ptr<RPC_SERVER_INTERFACE> sIf = MIDL_SERVER_INFO.Create(handle, iid, RpcApi.TYPE_FORMAT, RpcApi.FUNC_FORMAT, fnExec);
+            Ptr<RPC_SERVER_INTERFACE> sIf = MIDL_SERVER_INFO.Create(handle, iid, RpcApi.TYPE_FORMAT, RpcApi.FUNC_FORMAT, remoteProcessMessage);
 
             if (!allowAnonTcp && maxRequestBytes < 0)
                 RpcException.Assert(RpcServerRegisterIf(sIf.Handle, IntPtr.Zero, IntPtr.Zero));

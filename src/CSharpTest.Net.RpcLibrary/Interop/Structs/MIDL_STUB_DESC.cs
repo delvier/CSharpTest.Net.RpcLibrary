@@ -19,13 +19,10 @@ using System.Runtime.InteropServices;
 namespace CSharpTest.Net.RpcLibrary.Interop.Structs
 {
     internal delegate IntPtr LocalAlloc(uint size);
-
     internal delegate void LocalFree(IntPtr ptr);
-
 
     [StructLayout(LayoutKind.Sequential)]
     internal struct MIDL_STUB_DESC
-
     {
         public IntPtr /*RPC_CLIENT_INTERFACE*/ RpcInterfaceInformation;
         public IntPtr pfnAllocate;
@@ -59,7 +56,7 @@ namespace CSharpTest.Net.RpcLibrary.Interop.Structs
             pfnAllocate = RpcApi.AllocPtr.Handle;
             pfnFree = RpcApi.FreePtr.Handle;
             pAutoBindHandle = serverSide ? IntPtr.Zero : handle.Pin(new IntPtr());
-            apfnNdrRundownRoutines = serverSide ? handle.Pin(new NDR_RUNDOWN_TABLE { RundownEntry  = RemoteCloseFunctionPtr.Handle }) : IntPtr.Zero;
+            apfnNdrRundownRoutines = serverSide ? handle.Pin(new NDR_RUNDOWN_TABLE { RundownEntry = RemoteCloseFunctionPtr.Handle }) : IntPtr.Zero;
             aGenericBindingRoutinePairs = new IntPtr();
             apfnExprEval = new IntPtr();
             aXmitQuintuple = new IntPtr();
@@ -70,12 +67,12 @@ namespace CSharpTest.Net.RpcLibrary.Interop.Structs
             MIDLVersion = 0x70001f4;
             CommFaultOffsets = serverSide
                                    ? IntPtr.Zero
-                                   : handle.Pin(new COMM_FAULT_OFFSETS() {CommOffset = -1, FaultOffset = -1});
+                                   : handle.Pin(new COMM_FAULT_OFFSETS { CommOffset = -1, FaultOffset = -1 });
             aUserMarshalQuadruple = new IntPtr();
             NotifyRoutineTable = new IntPtr();
             mFlags = new IntPtr(0x00000001);
-            CsRoutineTables = new IntPtr(0xFAFAFAF);
-            ProxyServerInfo = new IntPtr(0xAAAAAAAAAA);
+            CsRoutineTables = new IntPtr();
+            ProxyServerInfo = new IntPtr();
             pExprInfo = new IntPtr();
         }
 

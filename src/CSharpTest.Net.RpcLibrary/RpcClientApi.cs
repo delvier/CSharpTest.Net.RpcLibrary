@@ -138,7 +138,7 @@ namespace CSharpTest.Net.RpcLibrary
                 Log.Warning("AuthenticateAs was not called, assuming Anonymous.");
                 //AuthenticateAs(Anonymous);
             }
-            Log.Verbose("RpcExecute(byte[{0}])", input.Length);
+            Log.Verbose("RpcRemoteProcessMessageDelegate(byte[{0}])", input.Length);
             return InvokeRpc(_handle, IID, input);
         }
 
